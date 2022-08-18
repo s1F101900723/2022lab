@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="format-detection" content="telephone=no" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src * data:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+<script type="text/javascript" src="music.js"></script> 
+<script type="text/javascript" src="webaudio-1.0.0.js"></script>
+<title>Web Audio APIによるソフトウェア音源</title>
+</head>
+
+<body>
+<div>
+    <button id="startbutton"> 開始 </button>
+    <button id="stopbutton"> 停止 </button>
+</div>
+<div style="margin-top: 4px;">
+    <label for="freq"> 周波数 </label>
+    <input type="number" id="freq" value="440" pattern="[0-9]*">
+    Hz </div>
+</body>
+</html>
