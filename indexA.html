@@ -110,13 +110,13 @@
   } 
   
   async function myPoly(){  
-    mySerial = await serial.requestPort()
+    mySerial = await serial.requestPort();
                                                                      
     //document.getElementById('myDiv01').innerHTML += await '<b>mySerial: </b><br><pre>' +  JSON.stringify(mySerial, null, 3) + '</pre><br><br>'      
                                             
                                                                                      
-    console.log('mySerial')                    
-    console.log(mySerial)   
+    console.log('mySerial');
+    console.log(mySerial);
 
     const myOpen = await mySerial.open({baudRate: 115200});
     reader = mySerial.readable.getReader();                                              
@@ -131,7 +131,7 @@
  
     
     // start looping the serial read. Is there a better way to do this?
-    clearInterval(myLooping)
+    clearInterval(myLooping);
     myLooping = setInterval(myRead, 1000); 
   }
   
@@ -141,7 +141,7 @@
           //document.getElementById('target').innerHTML = receivedText + '<br>' + document.getElementById('target').innerHTML // latest on top
         },
         error => {
-        console.error('error from read', error)
+        console.error('error from read', error);
       //document.getElementById('myDiv01').innerHTML = 'error from read' + error
       }
       );
@@ -153,8 +153,8 @@
       writer.ready.then(() => {                                         
         let inputArrayBuffer = str2ab(myData2);
         const myWritten = writer.write(inputArrayBuffer);
-        console.log('myWritten')
-        console.log(myWritten)
+        console.log('myWritten');
+        console.log(myWritten);
                                           
         //document.getElementById('myDiv01').innerHTML = '<br><br><b>myWriter: </b><br><pre>' +  JSON.stringify(myWritten, null, 3) + '</pre><br><br>'  
                                               
