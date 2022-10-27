@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Web Serial API Console</title>
     <script>
         let port;
@@ -11,7 +12,7 @@
         async function onConnectButtonClick() {
             try {
                 port = await navigator.serial.requestPort();
-                await port.open({ baudRate: 9600 });
+                await port.open({ baudRate: 115200 });
 
                 while (port.readable) {
                     const reader = port.readable.getReader();
@@ -20,20 +21,20 @@
                         while (true) {
                             const { value, done } = await reader.read();
                             if (done) {
-                                addSerial("Canceled\n");
+                                addSerialError("Canceled\n");
                                 break;
                             }
                             const inputValue = new TextDecoder().decode(value);
                             addSerial(inputValue);
                         }
                     } catch (error) {
-                        addSerial("Error: Read" + error + "\n");
+                        addSerialError("Error: Read" + error + "\n");
                     } finally {
                         reader.releaseLock();
                     }
                 }
             } catch (error) {
-                addSerial("Error: Open" + error + "\n");
+                addSerialError("Error: Open" + error + "\n");
             }
         }
 
@@ -41,29 +42,242 @@
             var textarea = document.getElementById('outputArea');
             textarea.value += msg;
             textarea.scrollTop = textarea.scrollHeight;
+            var list = textarea.value.split(/\r\n|\n/);//.map(Number)
+            var list1= textarea.value.split(/\r\n|\n/).slice(0,-1);
+            var match = /\r|\n/.exec(msg);
+            if (match) {
+              //console.log("ある",msg);
+              createchart1(list1);
+              //console.log(list1);
+            }
+            //console.log(list);
         }
 
-        async function sendSerial() {
-            var text = document.getElementById('sendInput').value;
-            document.getElementById('sendInput').value = "";
+        function addSerialError(msg) {
+            var errortextarea = document.getElementById('erroroutputArea');
+            errortextarea.value += msg;
+            errortextarea.scrollTop = errortextarea.scrollHeight;
+        }
 
+        async function sendSerial(changes, melo) {
             const encoder = new TextEncoder();
             const writer = port.writable.getWriter();
-            await writer.write(encoder.encode(text + "\n"));
+            await writer.write(encoder.encode(changes + melo + "\n"));
             writer.releaseLock();
         }
+
     </script>
 </head>
 
 <body>
     <h1>Web Serial API Console</h1>
-    <button onclick="onConnectButtonClick()">Connect</button> 9600 Only
+    <button onclick="onConnectButtonClick()">Connect</button> 115200 Only
     <br />
 
-    <input type="text" id="sendInput" />
-    <input type="button" value="Send" onclick="sendSerial();" />
+    <input type="number" value="300" id="rangevalue" min="200" max="1000">ms
+    <br/>
+    <input type="range" id="rangespeed" min="200" max="1000" value="300">
+    <br/>
+
+
+
+            <div class="button r" id="button-1">
+              <input type="checkbox" class="checkbox" id="modecheckbox"/>
+              <div class="knobs"></div>
+              <div class="k2"></div>
+              <div class="layer"></div>
+            </div>
+            <br>
+            <br>
+            <div class="button r" id="button-2">
+              <input type="checkbox" class="checkbox" id="powercheckbox"/>
+              <div class="knobs"></div>
+              <div class="k2"></div>
+              <div class="layer"></div>
+            </div>
+
+
+
+    <!--input type="text" id="sendInput" />
+    <input type="button" value="Send" onclick="sendSerial();" /-->
     <br />
-    <textarea cols="80" rows="6" id="outputArea" readonly></textarea>
-</body>
+    <p>取得データ</p><button onclick="createchart1(document.getElementById('outputArea').value.split(/\r\n|\n/).map(Number))">更新</button>
+    <textarea cols="80" rows="6" id="outputArea"></textarea>
+    <p>接続状況</p>
+    <textarea cols="80" rows="6" id="erroroutputArea" readonly></textarea>
+    <p>折れ線グラフ</p>
+    <canvas id="myLineChart"></canvas>
+    <canvas id="myLineChart2"></canvas>
+    <!--script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script-->
+    <!--script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/Chart.min.js"></script-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link rel="stylesheet" href="sample.css">
+  </body>
+
+<script>
+  var elem = document.getElementById('rangespeed');
+  var target = document.getElementById('rangevalue');
+  var rangeValue = function (elem, target, changes) {
+    return function(evt){
+      target.value = elem.value;
+      sendSerial(changes,target.value);//音の長さ変更
+    }
+  }
+  elem.addEventListener('input', rangeValue(elem, target, 'L'));
+  target.addEventListener('input', rangeValue(target, elem, 'L'));
+
+
+  function modevalueChange(event){
+    if (ModeCheckbox.checked){
+      //console.log("全身");
+      sendSerial('M','body');
+    }else{
+      //console.log("手");
+      sendSerial('M','hand');
+    }
+  }
+  let ModeCheckbox = document.getElementById('modecheckbox');
+  ModeCheckbox.addEventListener('change', modevalueChange);
+
+  function powervalueChange(event){
+    if (PowerCheckbox.checked){
+      //console.log("全身");
+      sendSerial('S','ON');
+    }else{
+      //console.log("手");
+      sendSerial('S','OFF');
+    }
+  }
+
+let PowerCheckbox = document.getElementById('powercheckbox');
+PowerCheckbox.addEventListener('change', powervalueChange);
+
+
+</script>
+
+<script>
+  window.onload = function() {
+    var ctx = document.getElementById("myLineChart");
+    window.myLineChart = new Chart(ctx, {
+
+      data: {
+          datasets: [{
+              indexAxis: 'x',
+              label: 'ガイド',
+              data: [,277.183,277.183,391.995,391.995],
+              type: 'line',
+              // this dataset is drawn on top
+              stepped: true,//←サンプリング
+              pointRadius:0,
+              borderColor: 'rgb(0, 192, 192)',
+              borderWidth:1,
+              fill: true,
+          },
+          {
+              label: 'ガイド',
+              data: [,277.183,277.183,391.995,391.995,300],
+              type: 'bar',
+              // this dataset is drawn on top
+              indexAxis: 'y',
+              pointRadius:0,
+              borderColor: 'rgb(0, 192, 192)',
+              borderWidth:1,
+              fill: true,
+              yAxisID: 'y2',
+              xAxisID: 'x2',
+
+
+          },
+          {
+              indexAxis: 'x',
+              label: 'Line Dataset',
+              data: [],
+              type: 'line',
+              // this dataset is drawn on top
+              stepped: true,//←サンプリング
+              pointRadius:0,
+              borderColor: 'rgb(75, 192, 192)',
+              borderWidth:1,
+              fill: true,
+          },
+          {
+              label: 'Line Dataset2',
+              data: [],
+              type: 'bar',
+              // this dataset is drawn on top
+              indexAxis: 'y',
+              pointRadius:0,
+              borderColor: 'rgb(192, 192, 192)',
+              borderWidth:1,
+              fill: true,
+              yAxisID: 'y2',
+              xAxisID: 'x2',
+
+          }],
+          labels: [],
+          tension: 1
+      },
+      options: {
+      responsive: true,
+      scales: {
+        x: {
+
+          ticks: {
+            maxTicksLimit: 6,
+          }
+        },
+        y: {
+
+          stack: 'demo',
+          min: 0,
+          max: 1100,
+          beginAtZero: true,
+          stackWeight: 12,
+          ticks: {
+            maxTicksLimit: 12
+          }
+        },
+        x2: {
+          position: 'top',
+          min: 0,
+          max: 1100,
+          ticks: {
+            maxTicksLimit: 12,
+          }
+        },
+        y2: {
+          //display:false,
+          stacked: true,
+          stack: 'demo',
+          stackWeight: 8,
+          //offset:true,
+          ticks: {
+            
+          }
+        },
+   
+      },
+      animation: false,
+      
+    }
+    });
+  };
+
+  function createchart1(list){
+    //list=[,].concat([100.01,120,40,50,100,120,300,40,30,100,120,40,50,100,120,300,40,30,120,300,40,30,120,300,40,30]);
+    list=([,].concat(list)).concat([,])
+    var listtime=[...Array(list.length).keys()].map(i => (i)*elem.value/1000);
+    console.log(listtime.length);
+    console.log(listtime.length-1);
+    window.myLineChart.data.datasets[2].data = list;
+    window.myLineChart.data.datasets[3].data = list;
+    window.myLineChart.options.scales.x.max = listtime[listtime.length-1];
+    window.myLineChart.options.scales.x.min = listtime[listtime.length-10];
+    window.myLineChart.options.scales.y2.max = listtime[listtime.length-1];
+    window.myLineChart.options.scales.y2.min = listtime[listtime.length-2];
+    window.myLineChart.data.labels = listtime;
+    window.myLineChart.update();
+  }
+</script>
 
 </html>
