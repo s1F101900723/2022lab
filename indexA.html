@@ -10,6 +10,7 @@
       //Global Variables
       var exports = {};
     </script>  
+    <script src="https://cdn.jsdelivr.net/npm/web-serial-polyfill@1.0.13/dist/serial.js"> </script> 
     <script>
         let port;
 
@@ -97,7 +98,7 @@
   let reader = {};
   let writer = {};
   
-   str2ab = function(str) {
+  str2ab = function(str) {
     var buf = new Uint8Array(str.length); // 1 byte for each char
     for (var i=0, strLen=str.length; i < strLen; i++) {
       buf[i] = str.charCodeAt(i);
@@ -112,7 +113,7 @@
   async function myPoly(){  
     mySerial = await serial.requestPort();
                                                                      
-    //document.getElementById('myDiv01').innerHTML += await '<b>mySerial: </b><br><pre>' +  JSON.stringify(mySerial, null, 3) + '</pre><br><br>'      
+    document.getElementById('myDiv01').innerHTML += await '<b>mySerial: </b><br><pre>' +  JSON.stringify(mySerial, null, 3) + '</pre><br><br>'      
                                             
                                                                                      
     console.log('mySerial');
@@ -159,7 +160,7 @@
         //document.getElementById('myDiv01').innerHTML = '<br><br><b>myWriter: </b><br><pre>' +  JSON.stringify(myWritten, null, 3) + '</pre><br><br>'  
                                               
     
-      })    
+      });
   } 
 
 
@@ -182,6 +183,7 @@
 
 <body>
     <h1>Web Serial API Console</h1>
+    <div id="myDiv01">...</div> <br><br><br>
     <button onclick="onConnectButtonClick()">Connect</button> 115200 Only
     <br />
 
