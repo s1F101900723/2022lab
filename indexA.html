@@ -114,7 +114,9 @@
     console.log(mySerial);
     const myOpen = await mySerial.open({baudRate: 115200});
     reader = mySerial.readable.getReader();                                              
-    writer = mySerial.writable.getWriter();    
+    writer = mySerial.writable.getWriter();
+    const results = mySerial.getInfo();
+       
     //document.getElementById('myDiv01').innerHTML += await 'Results:<b>: </b><br><pre>' +  JSON.stringify(results, null, 3) + '</pre><br><br>'                                          
     //document.getElementById('myDiv01').innerHTML += 'results.usbVendorId: ' + results.usbVendorId + '<br>'
     //document.getElementById('myDiv01').innerHTML += 'results.usbProductId: ' + results.usbProductId + '<br>'
