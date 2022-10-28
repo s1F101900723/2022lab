@@ -10,7 +10,7 @@
       //Global Variables
       var exports = {};
     </script>  
-    <script src="https://cdn.jsdelivr.net/npm/web-serial-polyfill@1.0.14/dist/serial.js"> </script> 
+    <script src="https://cdn.jsdelivr.net/npm/web-serial-polyfill@1.0.13/dist/serial.js"> </script> 
     <script>
         let port;
 
@@ -111,6 +111,7 @@
   
   async function myPoly(){  
     mySerial = await serial.requestPort();
+    console.log(mySerial);
     const myOpen = await mySerial.open({baudRate: 115200});
     reader = mySerial.readable.getReader();                                              
     writer = mySerial.writable.getWriter();    
