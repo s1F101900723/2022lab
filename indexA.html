@@ -44,7 +44,6 @@
                 addSerialError("Error: Open" + error + "\n");
             }
           } else {
-            console.log('Web Serial API not supported. Switching to Polyfill<br>');
             myPoly();
           }
         }
@@ -78,7 +77,7 @@
             writer.releaseLock();
           } else {
             console.log('send Web Serial API not supported. Switching to Polyfill<br>');
-            //myPoly();
+            mySend(changes + melo + "\n");
           }
         }
 
@@ -112,21 +111,10 @@
   
   async function myPoly(){  
     mySerial = await serial.requestPort();
-                                                                     
-    document.getElementById('myDiv01').innerHTML += await '<b>mySerial: </b><br><pre>' +  JSON.stringify(mySerial, null, 3) + '</pre><br><br>'      
-                                            
-                                                                                     
-    console.log('mySerial');
-    console.log(mySerial);
-
     const myOpen = await mySerial.open({baudRate: 115200});
     reader = mySerial.readable.getReader();                                              
     writer = mySerial.writable.getWriter();    
-                                            
-    const results = mySerial.getInfo();
-    
     //document.getElementById('myDiv01').innerHTML += await 'Results:<b>: </b><br><pre>' +  JSON.stringify(results, null, 3) + '</pre><br><br>'                                          
-    console.log('get info results', results);
     //document.getElementById('myDiv01').innerHTML += 'results.usbVendorId: ' + results.usbVendorId + '<br>'
     //document.getElementById('myDiv01').innerHTML += 'results.usbProductId: ' + results.usbProductId + '<br>'
  
@@ -139,10 +127,11 @@
   async function myRead(){  
       reader.read().then(({value}) => {        
           let receivedText = ab2str(value);
+          addSerial(receivedText);
           //document.getElementById('target').innerHTML = receivedText + '<br>' + document.getElementById('target').innerHTML // latest on top
         },
         error => {
-        console.error('error from read', error);
+          addSerialError('error from read'+error);
       //document.getElementById('myDiv01').innerHTML = 'error from read' + error
       }
       );
@@ -153,13 +142,9 @@
   async function mySend(myData2){  
       writer.ready.then(() => {                                         
         let inputArrayBuffer = str2ab(myData2);
-        const myWritten = writer.write(inputArrayBuffer);
-        console.log('myWritten');
-        console.log(myWritten);
-                                          
+        const myWritten = writer.write(inputArrayBuffer);      
         //document.getElementById('myDiv01').innerHTML = '<br><br><b>myWriter: </b><br><pre>' +  JSON.stringify(myWritten, null, 3) + '</pre><br><br>'  
                                               
-    
       });
   } 
 
