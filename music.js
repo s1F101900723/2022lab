@@ -1,29 +1,103 @@
-"use strict";
-
-var webAudio;
-
-window.onload = function () {
-	document.getElementById('startbutton').addEventListener('click', start);
-	document.getElementById('stopbutton').addEventListener('click', stop);
+function getParam(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return '';
+    if (!results[2]) return '';
+    return name+"="+decodeURIComponent(results[2].replace(/\+/g, " "));
 }
-
-function start(event) {
-	if (!webAudio) {
-		webAudio = new WEBAUDIO();
-		webAudio.init(startProc);
-	} else {
-		startProc();
-	}
+function load_api(){
+    var apiurl='https://script.google.com/macros/s/AKfycbzCQSJ-7N4oCs6sAi63fJmbl9it2DEZbbP0drv20H3FtulEg6yGbFcsEuMY0WOD96t4XQ/exec?getdata=all';
+    fetch(apiurl) // APIのURL
+    .then(response => {
+        return response.json();
+    })
+    .then(myJson => {
+        let listtext="";
+        for (i=0; i<myJson.length; i++){
+            listtext+="<li>"+myJson[i]+"  <a href='./indexA.html?guideid="+(i+2)+"'>ガイド使用</a>  <a href='./indexA.html?id="+(i+2)+"'>ガイド編集</a></li>";
+        }
+        document.getElementById("listid").innerHTML=listtext;
+    });
 }
-
-function startProc() {
-	if (!webAudio) return;
-	var freq = document.getElementById('freq').value;
-	webAudio.setFrequency(freq);
-	webAudio.getAudioContext().resume();
+function load_api2(paramguidename){
+    var apiurl='https://script.google.com/macros/s/AKfycbzCQSJ-7N4oCs6sAi63fJmbl9it2DEZbbP0drv20H3FtulEg6yGbFcsEuMY0WOD96t4XQ/exec?'+paramguidename;
+    fetch(apiurl) // APIのURL
+    .then(response => {
+        return response.json();
+    })
+    .then(myJson => {
+        var listtext="ガイド："+myJson[0][0];
+        document.getElementById("listid").textContent=listtext;
+        var listresult=(myJson[0][1]).split(',').map((num, index) => {
+            if (index == 0) {
+                return ;
+            }else if (index == ((myJson[0][1]).split(',').length)-1) {
+                return ;
+            }else{
+                return Number(num);
+            }
+          });
+        window.myLineChart.data.datasets[0].data = listresult;
+        if(melomode==1){
+            window.myLineChart.data.datasets[1].data = listresult.map(i => (i)*melodis/4);
+        }else{
+            window.myLineChart.data.datasets[1].data = listresult.map(i => ((i/27.5)/Math.log(2**(0.83)))*melodis);
+        }
+        
+        window.myLineChart.data.datasets[2].data = listresult;
+        window.myLineChart.update();
+        createchart1(document.getElementById('outputArea').value.split(/\r\n|\n/).map(Number));
+    });
 }
+function load_api3(paramname){
+    var apiurl='https://script.google.com/macros/s/AKfycbzCQSJ-7N4oCs6sAi63fJmbl9it2DEZbbP0drv20H3FtulEg6yGbFcsEuMY0WOD96t4XQ/exec?get'+paramname;
+    fetch(apiurl) // APIのURL
+    .then(response => {
+        return response.json();
+    })
+    .then(myJson => {
+        document.getElementById("title").value=myJson[0][0];
+        var textdata=myJson[0][1].slice(1, -1);
+        console.log(textdata);
+        document.getElementById('outputArea').value = textdata.replace(/,/g, '\n' );
+        document.getElementById('outputArea').scrollTop = document.getElementById('outputArea').scrollHeight;
+        createchart1(document.getElementById('outputArea').value.split(/\r\n|\n/).map(Number));
+    });
+}
+function load_api4(paramguidename,paramname){
+    var apiurl='https://script.google.com/macros/s/AKfycbzCQSJ-7N4oCs6sAi63fJmbl9it2DEZbbP0drv20H3FtulEg6yGbFcsEuMY0WOD96t4XQ/exec?get'+paramname+'&'+paramguidename;
+    fetch(apiurl) // APIのURL
+    .then(response => {
+        return response.json();
+    })
+    .then(myJson => {
+        document.getElementById("title").value=myJson[1][0];
+        var textdata=myJson[1][1].slice(1, -1);
+        document.getElementById('outputArea').value = textdata.replace(/,/g, '\n' );
+        document.getElementById('outputArea').scrollTop = document.getElementById('outputArea').scrollHeight;
 
-function stop() {
-	if (!webAudio) return;
-	webAudio.getAudioContext().suspend();
+        var listtext="ガイド："+myJson[0][0];
+        document.getElementById("listid").textContent=listtext;
+        var listresult=(myJson[0][1]).split(',').map((num, index) => {
+            if (index == 0) {
+                return ;
+            }else if (index == ((myJson[0][1]).split(',').length)-1) {
+                return ;
+            }else{
+                return Number(num);
+            }
+          });
+        window.myLineChart.data.datasets[0].data = listresult;
+
+        if(melomode==1){
+            window.myLineChart.data.datasets[1].data = listresult.map(i => (i)*melodis/4);
+        }else{
+            window.myLineChart.data.datasets[1].data = listresult.map(i => ((i/27.5)/Math.log(2**(0.83)))*melodis);
+        }
+        window.myLineChart.data.datasets[2].data = listresult;
+        window.myLineChart.update();
+        createchart1(document.getElementById('outputArea').value.split(/\r\n|\n/).map(Number));
+    });
 }

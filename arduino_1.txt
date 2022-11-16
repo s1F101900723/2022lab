@@ -1,0 +1,87 @@
+
+int melo = 300;   // 音の長さを指定
+int pin = 13;     // ブザーを接続したピン番号
+
+int TRIG = 3;
+int ECHO = 2;
+int Step = 1;
+float duration = 0;
+float distance = 0;
+int maxdistance = 63;
+int mindistance = 4;
+float speed_of_sound = 331.5 + 0.6 * 25; // 25℃の気温の想定
+float frequency =0;
+int Fre=1;
+/*int photoResistor = A5;*/
+/*int bright;*/
+int powerstatus = 0;
+int intdistance;
+
+void setup() {
+  Serial.begin( 115200 );
+  /*pinMode(photoResistor, INPUT);*/
+  pinMode(ECHO, INPUT );
+  pinMode(TRIG, OUTPUT );
+}
+
+void loop() {
+
+  while (Serial.available()) {
+    String command = Serial.readStringUntil('\n');
+    if (command[0]=='L') {/*音の長さ*/
+      melo = (command.substring(1)).toInt();
+    }else if (command[0]=='M') {/*手⇔全身モード切り替え*/
+      if (command=="Mhand") {
+        maxdistance=63;
+        mindistance=4;
+        Step=1;
+      }
+      else {
+        maxdistance=252;
+        mindistance=4;
+        Step=4;
+      }
+    }else if (command[0]=='S') {/*演奏状態*/
+      if (command=="SON") {
+        powerstatus=1;
+      }
+      else {
+        powerstatus=0;
+      }
+    }else if (command[0]=='F') {/*音階*/
+      if (command=="FON") {
+        Fre=1;
+      }
+      else {
+        Fre=0;
+      }
+    }
+  }
+  
+  digitalWrite(TRIG, LOW); 
+  delayMicroseconds(2); 
+  digitalWrite( TRIG, HIGH );
+  delayMicroseconds( 10 ); 
+  digitalWrite( TRIG, LOW );
+  duration = pulseIn( ECHO, HIGH ); // 往復にかかった時間が返却される[マイクロ秒]
+/*27.5*(2^(1/12))^n    27.5*(2^(1/12))^(252/4)  27.5*(2^(1/12))^63*/
+  if (powerstatus==1 && duration > 0) {
+    duration = duration / 2; // 往路にかかった時間
+    distance = (duration * speed_of_sound * 100 / 1000000);
+    intdistance =(int) distance;
+    if (intdistance <= maxdistance & intdistance >= mindistance){
+      /*frequency=27.5*(2^(1/12))^(distance/Step);*/
+      if (Fre == 0){
+        frequency=55*pow(pow(2,0.083),intdistance/Step);
+      }else {
+        frequency=4*(intdistance/Step);
+      }
+      Serial.println(frequency);
+      tone(pin,frequency,melo);
+      delay(melo);
+    }else{
+      Serial.println();
+      delay(melo);
+    }
+  }
+}

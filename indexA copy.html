@@ -7,15 +7,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Web Serial API Console</title>
     <script>
-        const melolist=[27.5,29.135,30.868,
-        32.703,34.648,36.708,38.891,41.203,43.654,46.249,48.999,51.913,55,58.27,61.735,
-        65.406,69.296,73.416,77.782,82.407,87.307,92.499,97.999,103.826,110,116.541,123.471,
-        130.813,138.591,146.832,155.563,164.814,174.614,184.997,195.998,207.652,220,233.082,246.942,
-        261.626,277.183,293.665,311.127,329.628,349.228,369.994,391.995,415.305,440,466.164,493.883,
-        523.251,554.365,587.33,622.254,659.255,698.456,739.989,783.991,830.609,880,932.328,987.767,
-        1046.502
-        ];
-        console.log(melolist.length);
+      //Global Variables
+      var exports = {};
+    </script>  
+    <script src="https://cdn.jsdelivr.net/npm/web-serial-polyfill@1.0.14/dist/serial.js"> </script>
+    <!--↑polyfill--> 
+    <script>
         let port;
 
 
@@ -55,30 +52,21 @@
                 document.getElementById('exclamation').style.display = 'inline';
             }
           } else {
-            alert('ブラウザが対応していません');
+            myPoly();
           }
         }
 
-
-        
-        var resultfreq;
-        var freq='';
         function addSerial(msg) {
             var textarea = document.getElementById('outputArea');
-            var distextarea = document.getElementById('disoutputArea');
-            distextarea.value += msg;
-            distextarea.scrollTop = distextarea.scrollHeight;
-            freq+=msg;
-            var match = /\r\n|\n/.exec(msg);
+            textarea.value += msg;
+            textarea.scrollTop = textarea.scrollHeight;
+            var list = textarea.value.split(/\r\n|\n/);//.map(Number)
+            var list1= textarea.value.split(/\r\n|\n/).slice(0,-1);
+            var match = /\r|\n/.exec(msg);
             if (match) {
-              
-              resultfreq=parseInt(27.5*((2**(0.083))**(parseInt(freq.split(/\r\n|\n/)[0])/melodis)));
-              textarea.value += resultfreq+'\n';
-              textarea.scrollTop = distextarea.scrollHeight;
-              freq='';
-              var list1= textarea.value.split(/\r\n|\n/).slice(0,-1);
+              //console.log("ある",msg);
               createchart1(list1);
-            }else{
+              //console.log(list1);
             }
             //console.log(list);
         }
@@ -96,31 +84,116 @@
             await writer.write(encoder.encode(changes + melo + "\n"));
             writer.releaseLock();
           } else {
-            alert('ブラウザが対応していません');
+            console.log('send Web Serial API not supported. Switching to Polyfill<br>');
+            mySend(changes + melo + "\n");
           }
         }
+
+
+
+// start polyfill for Android
+
+
+
+
+  //Global Variables for Polyfill
+  var serial = exports.serial;  // is this needed as defined in the npm
+ 
+  let myLooping;  // for read setinterval
+  var mySerial;
+  //let receivedText = '';
+  let reader = {};
+  let writer = {};
+  
+  str2ab = function(str) {
+    var buf = new Uint8Array(str.length); // 1 byte for each char
+    for (var i=0, strLen=str.length; i < strLen; i++) {
+      buf[i] = str.charCodeAt(i);
+    }
+    return buf;
+  }
+
+  ab2str = function(buf) {
+    return String.fromCharCode.apply(null, buf);
+  } 
+  
+  async function myPoly(){  
+    mySerial = await serial.requestPort();
+    console.log(mySerial);
+    const myOpen = await mySerial.open({baudRate: 115200});
+    console.log(myOpen);
+    reader = mySerial.readable.getReader();                                              
+    writer = mySerial.writable.getWriter();
+    const results = mySerial.getInfo();
+       
+    //document.getElementById('myDiv01').innerHTML += await 'Results:<b>: </b><br><pre>' +  JSON.stringify(results, null, 3) + '</pre><br><br>'                                          
+    //document.getElementById('myDiv01').innerHTML += 'results.usbVendorId: ' + results.usbVendorId + '<br>'
+    //document.getElementById('myDiv01').innerHTML += 'results.usbProductId: ' + results.usbProductId + '<br>'
+ 
+    
+    // start looping the serial read. Is there a better way to do this?
+    clearInterval(myLooping);
+    myLooping = setInterval(myRead, 1000); 
+  }
+  
+  async function myRead(){  
+      reader.read().then(({value}) => {        
+          let receivedText = ab2str(value);
+          addSerial(receivedText);
+          //document.getElementById('target').innerHTML = receivedText + '<br>' + document.getElementById('target').innerHTML // latest on top
+        },
+        error => {
+          addSerialError('error from read'+error);
+      //document.getElementById('myDiv01').innerHTML = 'error from read' + error
+      }
+      );
+  }
+  
+
+        
+  async function mySend(myData2){  
+      writer.ready.then(() => {                                         
+        let inputArrayBuffer = str2ab(myData2);
+        const myWritten = writer.write(inputArrayBuffer);      
+        //document.getElementById('myDiv01').innerHTML = '<br><br><b>myWriter: </b><br><pre>' +  JSON.stringify(myWritten, null, 3) + '</pre><br><br>'  
+                                              
+      });
+  } 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     </script>
 </head>
 
 <body>
-  <h1 id="listid">ガイド：</h1>
-  <a href="./titlelist.html" style="font-size: 12px;">ガイド一覧へ</a>
-    <table border="1" style="margin:20px auto;">
+    <h1>Web Serial API Console
+    <div id="myDiv01"></div>
+    <button onclick="onConnectButtonClick()">Connect</button> <i class="fa-regular fa-plug-circle-exclamation" id="exclamation"></i><i class="fa-regular fa-plug-circle-check" id="check"></i>
+    <br />
+    </h1>
+    <a href="https://script.google.com/macros/s/AKfycbzCQSJ-7N4oCs6sAi63fJmbl9it2DEZbbP0drv20H3FtulEg6yGbFcsEuMY0WOD96t4XQ/exec?Title=aaaa" target="sendPhoto">send</a>
+    <iframe name="sendPhoto" style="width:0px;height:0px;border:0px;"></iframe>
+    <table border="1">
       <tr>
-        <td rowspan="5">
+        <td rowspan="2">
           <a class="fa-regular fa-minus" href="javascript:minus();"></a>
           <input value="300" id="rangevalue" min="200" max="1000" readonly>ms <a class="fa-regular fa-plus" href="javascript:plus();"></a>
           <br/>
           <input type="range" id="rangespeed" min="200" max="1000" value="300">
         </td>
-      </tr>
-      <tr>
-        <td colspan="2">
-          <button onclick="onConnectButtonClick()">Connect</button> <i class="fa-regular fa-plug-circle-exclamation" id="exclamation"></i><i class="fa-regular fa-plug-circle-check" id="check"></i>
-        </td>
-      </tr>
-      <tr>
         <td>演奏状態</td>
         <td>
           <div class="button r" id="button-2">
@@ -142,56 +215,26 @@
           </div>
         </td>
       </tr>
-      <tr>
-        <td>音階</td>
-        <td>
-          <div class="button r" id="button-3">
-            <input type="checkbox" class="checkbox" id="melocheckbox"/>
-            <div class="knobs"></div>
-            <div class="k2"></div>
-            <div class="layer"></div>
-          </div>
-        </td>
-      </tr>
     </table>
-    <p style="display: none;">接続状況</p>
-    <textarea cols="80" rows="6" id="erroroutputArea" style="display: none;" readonly></textarea>
-    <div style="position:relative;max-height:80vh;width: 800px;max-width:95vw;margin:0 auto;">
-      <canvas id="myLineChart"></canvas>
-    </div>
-    <div style="max-height:80vh; width: 800px;max-width:95vw;margin:0 auto;">
-      <div style="margin: 10px 44px;">
-        <input type="checkbox" id="scales" name="scales" style="vertical-align:middle; margin: 0 4px 0 0;"><span style="vertical-align:middle;">全体表示</span><br><br>
-        <input id="title">
-        <a href="" target="sendPhoto" id="senddata">ガイドに追加</a>
-        <iframe name="sendPhoto" style="width:0px;height:0px;border:0px;"></iframe><br>
-        <textarea cols="20" rows="6" id="outputArea"  style="vertical-align : bottom;" readonly></textarea>
-        <button style="vertical-align:bottom;" id="edit">編集</button>
-        <button style="vertical-align:bottom; display: none;" id="update">更新</button>
-        <button style="vertical-align:bottom;" onclick="reset()">クリア</button>
-        <textarea cols="20" rows="6" id="disoutputArea"  style="vertical-align : bottom;"></textarea>
-      </div>
-    </div>
+
+
+    <!--input type="text" id="sendInput" />
+    <input type="button" value="Send" onclick="sendSerial();" /-->
+    <br />
+    <p>取得データ</p><button onclick="createchart1(document.getElementById('outputArea').value.split(/\r\n|\n/).map(Number))">更新</button>
+    <textarea cols="80" rows="6" id="outputArea"></textarea>
+    <p>接続状況</p>
+    <textarea cols="80" rows="6" id="erroroutputArea" readonly></textarea>
+    <p>折れ線グラフ</p>
+    <canvas id="myLineChart"></canvas>
+    <canvas id="myLineChart2"></canvas>
+    <!--script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script-->
+    <!--script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/Chart.min.js"></script-->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.0.1/chartjs-plugin-annotation.js" integrity="sha512-2IDk8J5W953c9cJfrIzwCMBZSrcaIbM4ieNwgFmRLtXIdmu1IRl0+K8VCQ8e0H/ojaZqmalZcyYrfUikI5F28g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="sample.css">
   </body>
 
 <script>
-
-  document.getElementById('update').onclick = function () {
-    document.getElementById('update').style.display='none';
-    document.getElementById('edit').style.display='inline';
-    document.getElementById('outputArea').readOnly = true;
-    createchart1(document.getElementById('outputArea').value.split(/\r\n|\n/).map(Number));
-  }
-  document.getElementById('edit').onclick = function () {
-    document.getElementById('edit').style.display='none';
-    document.getElementById('update').style.display='inline';
-    document.getElementById('outputArea').readOnly = false;
-  }
-
-
   document.getElementById('check').style.display = 'none';
   document.getElementById('exclamation').style.display = 'inline';
 
@@ -206,16 +249,14 @@
   elem.addEventListener('input', rangeValue(elem, target, 'L'));
   target.addEventListener('input', rangeValue(target, elem, 'L'));
 
-  let melodis=1;
+
   function modevalueChange(event){
     if (ModeCheckbox.checked){
       //console.log("全身");
       sendSerial('M','body');
-      melodis=4;
     }else{
       //console.log("手");
       sendSerial('M','hand');
-      melodis=1;
     }
   }
   let ModeCheckbox = document.getElementById('modecheckbox');
@@ -233,22 +274,6 @@
 
 let PowerCheckbox = document.getElementById('powercheckbox');
 PowerCheckbox.addEventListener('change', powervalueChange);
-
-let melomode=1;
-function melovalueChange(event){
-    if (MeloCheckbox.checked){
-      //console.log("全身");
-      sendSerial('F','ON');
-      melomode=0;
-    }else{
-      //console.log("周波数");
-      sendSerial('F','OFF');
-      melomode=1;
-    }
-  }
-
-let MeloCheckbox = document.getElementById('melocheckbox');
-MeloCheckbox.addEventListener('change', melovalueChange);
 
 function minus(){
   if (Number(target.value)-1>=200){
@@ -276,23 +301,23 @@ function plus(){
           datasets: [{
               indexAxis: 'x',
               label: 'グラフ１ガイド',
-              data: [],
+              data: [,277.183,277.183,391.995,391.995],
               type: 'line',
               // this dataset is drawn on top
               stepped: 'middle',//←サンプリング
               pointRadius:0,
-              borderColor: 'rgb(255, 99, 132)',
+              borderColor: 'rgb(0, 192, 192)',
               borderWidth:1,
               fill: true,
           },
           {
               label: 'グラフ２ガイド',
-              data: [],
+              data: [,277.183,277.183,391.995,391.995,300],
               type: 'bar',
               // this dataset is drawn on top
               indexAxis: 'y',
               pointRadius:0,
-              borderColor: 'rgb(153, 102, 255)',
+              borderColor: 'rgb(0, 192, 192)',
               borderWidth:1,
               fill: true,
               yAxisID: 'y2',
@@ -302,11 +327,11 @@ function plus(){
           {
               indexAxis: 'x',
               label: 'グラフ３ガイド',
-              data: [],
+              data: [,277.183,277.183,391.995,391.995],
               type: 'line',
               // this dataset is drawn on top
               pointRadius:0,
-              borderColor: 'rgb(75, 192, 192)',
+              borderColor: 'rgb(0, 192, 192)',
               borderWidth:1,
           },
           {
@@ -317,8 +342,7 @@ function plus(){
               // this dataset is drawn on top
               stepped: 'middle',//←サンプリング
               pointRadius:0,
-              borderColor: 'rgb(255, 99, 132)',
-              backgroundColor:'rgba(255, 99, 132,0.2)',
+              borderColor: 'rgb(75, 192, 192)',
               borderWidth:1,
               fill: true,
           },
@@ -329,13 +353,11 @@ function plus(){
               // this dataset is drawn on top
               indexAxis: 'y',
               pointRadius:0,
-              borderColor: 'rgb(153, 102, 255)',
-              backgroundColor:'rgba(153, 102, 255,0.2)',
+              borderColor: 'rgb(192, 192, 192)',
               borderWidth:1,
               fill: true,
               yAxisID: 'y2',
               xAxisID: 'x2',
-              
 
           },
           {
@@ -346,7 +368,6 @@ function plus(){
               // this dataset is drawn on top
               pointRadius:0,
               borderColor: 'rgb(75, 192, 192)',
-              backgroundColor:'rgba(75, 192, 192,0.2)',
               borderWidth:1,
           }],
           labels: [],
@@ -375,7 +396,7 @@ function plus(){
         x2: {
           position: 'top',
           min: 0,
-          max: 300,
+          max: 1100,
           ticks: {
             maxTicksLimit: 12,
           }
@@ -393,6 +414,7 @@ function plus(){
    
       },
       animation: false,
+      
     }
     });
   };
@@ -401,71 +423,18 @@ function plus(){
     //list=[,].concat([100.01,120,40,50,100,120,300,40,30,100,120,40,50,100,120,300,40,30,120,300,40,30,120,300,40,30]);
     list=([,].concat(list)).concat([,])
     var listtime=[...Array(list.length).keys()].map(i => (i)*elem.value/1000);
+    console.log(listtime.length);
+    console.log(listtime.length-1);
     window.myLineChart.data.datasets[3].data = list;
-    var presdislist=document.getElementById('disoutputArea').value.split(/\r\n|\n/).filter(i=>i!=""|'');
-    var dislist=[,].concat(presdislist);
-    if(melomode==1){
-      //window.myLineChart.data.datasets[4].data = list.map(i => (i)*melodis/4);
-      window.myLineChart.data.datasets[4].data = dislist;
-    }else{
-      window.myLineChart.data.datasets[4].data = dislist;
-      //window.myLineChart.data.datasets[4].data = list.map(i => ((i/55)/Math.log(2**(0.83)))*melodis);
-    }
+    window.myLineChart.data.datasets[4].data = list;
     window.myLineChart.data.datasets[5].data = list;
-    
-    if (document.getElementById("scales").checked) { 
-      window.myLineChart.options.scales.x.max = listtime[listtime.length-1];
-      window.myLineChart.options.scales.x.min = 0;
-      window.myLineChart.options.scales.y2.max = listtime[listtime.length-1];
-      window.myLineChart.options.scales.y2.min = listtime[listtime.length-2];
-    } else {
-      window.myLineChart.options.scales.x.max = listtime[listtime.length-1];
-      window.myLineChart.options.scales.x.min = listtime[listtime.length-10];
-      window.myLineChart.options.scales.y2.max = listtime[listtime.length-1];
-      window.myLineChart.options.scales.y2.min = listtime[listtime.length-2];
-    }
+    window.myLineChart.options.scales.x.max = listtime[listtime.length-1];
+    window.myLineChart.options.scales.x.min = listtime[listtime.length-10];
+    window.myLineChart.options.scales.y2.max = listtime[listtime.length-1];
+    window.myLineChart.options.scales.y2.min = listtime[listtime.length-2];
     window.myLineChart.data.labels = listtime;
     window.myLineChart.update();
-
-    var dataurl="https://script.google.com/macros/s/AKfycbzCQSJ-7N4oCs6sAi63fJmbl9it2DEZbbP0drv20H3FtulEg6yGbFcsEuMY0WOD96t4XQ/exec?"+getParam('id')+"&title="+document.getElementById("title").value+"&frequency="+window.myLineChart.data.datasets[3].data;
-    document.getElementById("senddata").setAttribute('href', dataurl);
-
-    document.getElementById("scales").addEventListener("click", function (e) {
-    if (document.getElementById("scales").checked) {
-      window.myLineChart.options.scales.x.max = listtime[listtime.length-1];
-      window.myLineChart.options.scales.x.min = 0;
-    } else {
-      window.myLineChart.options.scales.x.max = listtime[listtime.length-1];
-      window.myLineChart.options.scales.x.min = listtime[listtime.length-10];
-    }
-    window.myLineChart.update();
-  });
   }
-
 </script>
 <script src="music.js"> </script>
-<script>
-  let targetguideid =getParam('guideid');
-  let targetid =getParam('id');
-  if (targetguideid!='' && targetid!=''){
-    load_api4(targetguideid, targetid);
-  }else if (targetguideid!=''){
-    load_api2(targetguideid);
-  }else if (targetid!=''){
-    load_api3(targetid);
-  }
-
-
-  function reset(){
-    var reset_target = document.getElementById("outputArea");
-    var disreset_target = document.getElementById("disoutputArea");
-    if(reset_target.value == ''){
-        alert('演奏データをクリアにしました。');
-    }else{
-        reset_target.value = '';
-        disreset_target.value = '';
-        alert('演奏データをクリアにしました。');
-    }
-  }
-</script>
 </html>

@@ -12,10 +12,8 @@
   
   .button {
     position: relative;
-    top: 50%;
     width: 74px;
     height: 36px;
-    margin: -20px auto 0 auto;
     overflow: hidden;
   }
   
@@ -54,7 +52,7 @@
     font-weight: bold;
     text-align: center;
     line-height: 1;
-    padding: 9px 4px;
+    padding: 10px 4px;
     border-radius: 2px;
     transition: 0.3s ease all;
   }
@@ -81,7 +79,7 @@
     font-weight: 900;
     text-align: center;
     line-height: 0.5;
-    padding: 9px 4px;
+    padding: 10px 4px;
     background-color: #03a9f4;
     border-radius: 50%;
     transition: 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15) all;
@@ -134,12 +132,12 @@
     font-weight: bold;
     text-align: center;
     line-height: 1;
-    padding: 9px 4px;
+    padding: 10px 4px;
     border-radius: 2px;
     transition: 0.3s ease all;
   }
 
-  /* Button 1 */
+  /* Button 2 */
   #button-2 .knobs:before {
     font-family: "Font Awesome 6 Free";
     content: "\f011";
@@ -153,7 +151,7 @@
     font-weight: 900;
     text-align: center;
     line-height: 0.5;
-    padding: 9px 4px;
+    padding: 10px 4px;
     background-color: #03a9f4;
     border-radius: 50%;
     transition: 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15) all;
@@ -190,3 +188,105 @@
     content: "OFF";
     right: 4px;
   }
+
+
+
+  /*button-3*/
+
+
+  #button-3 .k2:before,
+  #button-3 .k2:after {
+    color: #4e4e4e;
+    z-index: 2;
+    position: absolute;
+    top: 4px;
+    width: 20px;
+    height: 10px;
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1;
+    padding: 10px 4px;
+    border-radius: 2px;
+    transition: 0.3s ease all;
+  }
+
+  /* Button 3 */
+  #button-3 .knobs:before {
+    font-family: "Font Awesome 6 Free";
+    content: "\f001";
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 20px;
+    height: 10px;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 900;
+    text-align: center;
+    line-height: 0.5;
+    padding: 10px 4px;
+    background-color: #03a9f4;
+    border-radius: 50%;
+    transition: 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15) all;
+  }
+  
+  #button-3 .checkbox:checked + .knobs:before {
+    content: "\f001";
+    left: 42px;
+    background-color: #f44336;
+    font-weight: 900;
+  }
+  
+  #button-3 .checkbox:checked ~ .layer {
+    background-color: #fcebeb;
+  }
+  
+
+  #button-3 .knobs,
+  #button-3 .knobs:before,
+  #button-3 .k2,
+  #button-3 .k2:before,
+  #button-3 .k2::after,
+  #button-3 .layer {
+    transition: 0.3s ease all;
+  }
+
+
+  #button-3 .k2:before {
+    content: "12音階";
+    left: 4px;
+  }
+  
+  #button-3 .k2:after {
+    content: "周波数";
+    right: 4px;
+  }
+
+
+  .fa-regular {
+    font-weight: 900;
+  }
+
+  #check{
+    color: aquamarine;
+  }
+  #exclamation{
+    color: #4e4e4e;
+  }
+  #rangevalue{
+    border:none;
+    outline:none;
+    font-size: 30px;
+    text-align: center;
+    width: 80px;
+    padding: 0;
+  }
+  a{
+    text-decoration: none;
+    font-size: 20px;
+  }
+#senddata{
+  padding: 1px 6px;
+  font-size: 10px;
+}
