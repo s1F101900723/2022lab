@@ -15,7 +15,7 @@
         523.251,554.365,587.33,622.254,659.255,698.456,739.989,783.991,830.609,880,932.328,987.767,
         1046.502
         ];
-        console.log(melolist.length);
+
         let port;
 
 
@@ -72,7 +72,12 @@
             var match = /\r\n|\n/.exec(msg);
             if (match) {
               
-              resultfreq=parseInt(27.5*((2**(0.083))**(parseInt(freq.split(/\r\n|\n/)[0])/melodis)));
+              //resultfreq=parseInt(27.5*((2**(0.083))**(parseInt(freq.split(/\r\n|\n/)[0])/melodis)));
+              if (melomode==0){
+                resultfreq=melolist[parseInt(freq.split(/\r\n|\n/)[0])/melodis];
+              }else{
+                resultfreq=(parseInt(freq.split(/\r\n|\n/)[0])/melodis)*5;
+              }
               textarea.value += resultfreq+'\n';
               textarea.scrollTop = distextarea.scrollHeight;
               freq='';
@@ -169,7 +174,7 @@
         <button style="vertical-align:bottom;" id="edit">編集</button>
         <button style="vertical-align:bottom; display: none;" id="update">更新</button>
         <button style="vertical-align:bottom;" onclick="reset()">クリア</button>
-        <textarea cols="20" rows="6" id="disoutputArea"  style="vertical-align : bottom;"></textarea>
+        <textarea cols="20" rows="6" id="disoutputArea"  style="vertical-align : bottom; display: none;" readonly></textarea>
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
@@ -211,11 +216,17 @@
     if (ModeCheckbox.checked){
       //console.log("全身");
       sendSerial('M','body');
-      melodis=4;
+      melodis=5;
+      window.myLineChart.options.scales.x2.max = 300;
+
+      load_melo();
     }else{
       //console.log("手");
       sendSerial('M','hand');
       melodis=1;
+      window.myLineChart.options.scales.x2.max = 100;
+
+      load_melo();
     }
   }
   let ModeCheckbox = document.getElementById('modecheckbox');
@@ -240,10 +251,12 @@ function melovalueChange(event){
       //console.log("全身");
       sendSerial('F','ON');
       melomode=0;
+      load_melo();
     }else{
       //console.log("周波数");
       sendSerial('F','OFF');
       melomode=1;
+      load_melo();
     }
   }
 
@@ -297,7 +310,7 @@ function plus(){
               fill: true,
               yAxisID: 'y2',
               xAxisID: 'x2',
-
+              borderSkipped: 'false',
           },
           {
               indexAxis: 'x',
@@ -375,9 +388,16 @@ function plus(){
         x2: {
           position: 'top',
           min: 0,
-          max: 300,
+          max: 100,
           ticks: {
             maxTicksLimit: 12,
+            callback: function(tick) {
+              return tick.toString() + 'cm';
+            }
+          },
+          scaleLabel: {
+            display: true,
+            labelString: "cm",
           }
         },
         y2: {
