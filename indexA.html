@@ -15,9 +15,10 @@
         523.251,554.365,587.33,622.254,659.255,698.456,739.989,783.991,830.609,880,932.328,987.767,
         1046.502
         ];
+        
 
         let port;
-
+        var melomode=1;
 
         async function onConnectButtonClick() {
           if (navigator.serial) {
@@ -59,6 +60,7 @@
           }
         }
 
+        
 
         
         var resultfreq;
@@ -74,7 +76,7 @@
               
               //resultfreq=parseInt(27.5*((2**(0.083))**(parseInt(freq.split(/\r\n|\n/)[0])/melodis)));
               if (melomode==0){
-                resultfreq=melolist[parseInt(freq.split(/\r\n|\n/)[0])/melodis];
+                resultfreq=melolist[parseInt(parseInt(freq.split(/\r\n|\n/)[0])/melodis)];
               }else{
                 resultfreq=(parseInt(freq.split(/\r\n|\n/)[0])/melodis)*5;
               }
@@ -174,7 +176,7 @@
         <button style="vertical-align:bottom;" id="edit">編集</button>
         <button style="vertical-align:bottom; display: none;" id="update">更新</button>
         <button style="vertical-align:bottom;" onclick="reset()">クリア</button>
-        <textarea cols="20" rows="6" id="disoutputArea"  style="vertical-align : bottom; display: none;" readonly></textarea>
+        <textarea cols="20" rows="6" id="disoutputArea"  style="vertical-align : bottom;" readonly></textarea>
       </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
@@ -224,7 +226,7 @@
       //console.log("手");
       sendSerial('M','hand');
       melodis=1;
-      window.myLineChart.options.scales.x2.max = 100;
+      window.myLineChart.options.scales.x2.max = 70;
 
       load_melo();
     }
@@ -245,7 +247,7 @@
 let PowerCheckbox = document.getElementById('powercheckbox');
 PowerCheckbox.addEventListener('change', powervalueChange);
 
-let melomode=1;
+
 function melovalueChange(event){
     if (MeloCheckbox.checked){
       //console.log("全身");
@@ -388,7 +390,7 @@ function plus(){
         x2: {
           position: 'top',
           min: 0,
-          max: 100,
+          max: 70,
           ticks: {
             maxTicksLimit: 12,
             callback: function(tick) {
@@ -398,7 +400,8 @@ function plus(){
           scaleLabel: {
             display: true,
             labelString: "cm",
-          }
+          },
+          stacked: false
         },
         y2: {
           //display:false,
@@ -487,5 +490,6 @@ function plus(){
         alert('演奏データをクリアにしました。');
     }
   }
+  
 </script>
 </html>
